@@ -1,5 +1,4 @@
 <?php
-
 /*
  * This file is part of the StateMachine package.
  *
@@ -8,13 +7,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
 namespace winzou\Bundle\StateMachineBundle\DependencyInjection;
-
 use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
-
 class Configuration implements ConfigurationInterface
 {
     /**
@@ -22,36 +18,26 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        if (\method_exists(TreeBuilder::class, 'getRootNode')) {
-            $treeBuilder = new TreeBuilder('winzou_state_machine');
-            $configNode = $treeBuilder->getRootNode();
-        } else {
-            $treeBuilder = new TreeBuilder();
-            $configNode = $treeBuilder->root('winzou_state_machine');
-        }
-
-        $configNode = $configNode
+        $treeBuilder = new TreeBuilder();
+        $configNode = $treeBuilder
+            ->root('winzou_state_machine')
             ->useAttributeAsKey('name')
             ->prototype('array')
             ->children()
         ;
-
         $configNode
             ->scalarNode('class')->isRequired()->end()
             ->scalarNode('graph')->defaultValue('default')->end()
+            ->booleanNode('recursion')->defaultValue(false)->end() //@gio
             ->scalarNode('property_path')->defaultValue('state')->end()
             ->scalarNode('state_machine_class')->defaultValue('SM\\StateMachine\\StateMachine')->end()
         ;
-
         $this->addStateSection($configNode);
         $this->addTransitionSection($configNode);
         $this->addCallbackSection($configNode);
-
         $configNode->end()->end();
-
         return $treeBuilder;
     }
-
     /**
      * @param NodeBuilder $configNode
      */
@@ -59,12 +45,11 @@ class Configuration implements ConfigurationInterface
     {
         $configNode
             ->arrayNode('states')
-                ->useAttributeAsKey('name')
-                ->prototype('scalar')
+            ->useAttributeAsKey('name')
+            ->prototype('scalar')
             ->end()
         ;
     }
-
     /**
      * @param NodeBuilder $configNode
      */
@@ -72,33 +57,30 @@ class Configuration implements ConfigurationInterface
     {
         $configNode
             ->arrayNode('transitions')
-                ->useAttributeAsKey('name')
-                ->prototype('array')
-                    ->children()
-                        ->arrayNode('from')
-                            ->prototype('scalar')->end()
-                        ->end()
-                        ->scalarNode('to')->end()
-                    ->end()
-                ->end()
+            ->useAttributeAsKey('name')
+            ->prototype('array')
+            ->children()
+            ->arrayNode('from')
+            ->prototype('scalar')->end()
+            ->end()
+            ->scalarNode('to')->end()
+            ->booleanNode('stop_after_apply')->defaultValue(false)->end() //@gio
+            ->end()
+            ->end()
             ->end()
         ;
     }
-
     /**
      * @param NodeBuilder $configNode
      */
     protected function addCallbackSection(NodeBuilder $configNode)
     {
         $callbacks = $configNode->arrayNode('callbacks')->children();
-
         $this->addSubCallbackSection($callbacks, 'guard');
         $this->addSubCallbackSection($callbacks, 'before');
         $this->addSubCallbackSection($callbacks, 'after');
-
         $callbacks->end()->end();
     }
-
     /**
      * @param NodeBuilder $callbacks
      * @param string      $type
@@ -107,21 +89,21 @@ class Configuration implements ConfigurationInterface
     {
         $callbacks
             ->arrayNode($type)
-                ->useAttributeAsKey('name')
-                ->prototype('array')
-                    ->children()
-                        ->variableNode('on')->end()
-                        ->variableNode('from')->end()
-                        ->variableNode('to')->end()
-                        ->variableNode('excluded_on')->end()
-                        ->variableNode('excluded_from')->end()
-                        ->variableNode('excluded_to')->end()
-                        ->variableNode('do')->end()
-                        ->scalarNode('disabled')->defaultValue(false)->end()
-                        ->scalarNode('priority')->defaultValue(0)->end()
-                        ->arrayNode('args')->performNoDeepMerging()->prototype('scalar')->end()
-                    ->end()
-                ->end()
+            ->useAttributeAsKey('name')
+            ->prototype('array')
+            ->children()
+            ->variableNode('on')->end()
+            ->variableNode('from')->end()
+            ->variableNode('to')->end()
+            ->variableNode('excluded_on')->end()
+            ->variableNode('excluded_from')->end()
+            ->variableNode('excluded_to')->end()
+            ->variableNode('do')->end()
+            ->scalarNode('disabled')->defaultValue(false)->end()
+            ->scalarNode('priority')->defaultValue(0)->end()
+            ->arrayNode('args')->performNoDeepMerging()->prototype('scalar')->end()
+            ->end()
+            ->end()
             ->end()
         ;
     }
